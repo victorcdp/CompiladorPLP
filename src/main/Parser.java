@@ -1,11 +1,12 @@
 package main;
 
 //OQ FALTA
-//Print
-//1 comando de entrada (?)
+// fazer os comandos de for/while realmente repetir as coisas
 //arrays
 
 import java.util.List;
+import java.util.Scanner;
+
 
 public class Parser {
 
@@ -24,7 +25,7 @@ public class Parser {
     public void nextTk() {
         tokenIt += 1;
         look = tokens.get(tokenIt);
-        System.out.println("novo token: " + look); // só pra teste
+        //System.out.println("novo token: " + look); // só pra teste
     }
     
     public Token lookAhead(int n) {
@@ -69,23 +70,17 @@ public class Parser {
     private void bloco() {
         if (match(TokenTypes.ABRE_CHAVE)) {
             bloco++;
-            //System.out.println("abriu bloco");
-            //printLista();
             nextTk();
             while (match(TokenTypes.INT_ID) || match(TokenTypes.FLOAT_ID) || match(TokenTypes.CHAR_ID)) {
                 decl_var();
             }
-            while (match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.WHILE_ID) || match(TokenTypes.DO_ID) || match(TokenTypes.IF_ID) || match(TokenTypes.FOR_ID) /*|| match(ELSE_ID)*/) {
+            while (match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.WHILE_ID) || match(TokenTypes.DO_ID) || match(TokenTypes.IF_ID) || match(TokenTypes.FOR_ID) || match(TokenTypes.PRINTF) || match(TokenTypes.SCANF)/*|| match(ELSE_ID)*/) {
                 comando();
             }
             if (!match(TokenTypes.FECHA_CHAVE)) {
                 error("Bloco mal formado");
             }
-            //System.out.println("fechou bloco, lista antes de fechar:");
-            //printLista();
             lista.removerBloco(bloco);
-            //System.out.println("Lista depois de fechar:");
-            //printLista();
             bloco--;
         } else {
             error("Bloco mal formado");
@@ -149,6 +144,12 @@ public class Parser {
         } else if(match(TokenTypes.FOR_ID)) {
         	iteracaoFor();
         }
+        else if(match(TokenTypes.PRINTF)) {
+        	print();
+        }
+        else if(match(TokenTypes.SCANF)) {
+        	scan();
+        }
         else if (match(TokenTypes.IF_ID)) {
             nextTk();
             if (match(TokenTypes.ABRE_PARENTESES)) {
@@ -177,6 +178,88 @@ public class Parser {
         else if(match(TokenTypes.ABRE_CHAVE)){
             bloco();
         }
+    }
+    
+    public void scan() {
+    	nextTk();
+    	if(match(TokenTypes.ABRE_PARENTESES)) {
+    		nextTk();
+    		if(match(TokenTypes.IDENTIFICADOR)) {
+    			VarNode varFound = lista.find(look.lexema, bloco);
+    			if(varFound == null) {
+    				error("variável do scanf não existe");
+    			}
+    			nextTk();
+    			if(match(TokenTypes.FECHA_PARENTESES)) {
+    				nextTk();
+    				if(match(TokenTypes.PONTO_VIRGULA)) {
+    				    Scanner scanner = new Scanner(System.in);
+    					String input = scanner.nextLine();
+    					varFound.setValor(input);
+    					nextTk();
+    					scanner.close();
+    					return;
+    				}
+    				else {
+    					error("falta de ponto virgula");
+    				}
+    			}
+    			else {
+    				error("não fechou parenteses do scanf");
+    			}
+    		}
+    		else {
+    			error("scanf mal formado");
+    		}
+    	}
+    	else {
+    		error("scanf mal formado");
+    	}
+    }
+    
+    public void print() {
+    	String var = "";
+    	nextTk();
+    	if(match(TokenTypes.ABRE_PARENTESES)) {
+    		nextTk();
+    		if(match(TokenTypes.ASPAS)) {
+    			nextTk();
+    			while(!match(TokenTypes.ASPAS)) {
+        			var = var + " " + look.lexema;
+    				nextTk();
+    			}
+    			if(match(TokenTypes.ASPAS)) {
+    				nextTk();
+    			}
+    			else {
+    				error("não fechou aspas do printf");
+    			}
+    		}
+    		else if(match(TokenTypes.IDENTIFICADOR)) {
+    			if(lookAhead(1).tipo == TokenTypes.ASPAS) {
+    				error("print mal formado");
+    			}
+    			var = lista.find(look.lexema, bloco).getString();
+    			nextTk();
+    		}
+    		if(match(TokenTypes.FECHA_PARENTESES)) {
+    	    	System.out.println(var);
+    	    	nextTk();
+    	    	if(match(TokenTypes.PONTO_VIRGULA)) {
+    	    		nextTk();
+    	    		return;
+    	    	}
+    	    	else {
+    	    		error("falta de ponto virgula");
+    	    	}
+    		}
+    		else {
+    			error("não fechou parenteses do printf");
+    		}
+    	}
+    	else {
+    		error("não abriu parenteses no print");
+    	}
     }
     
     public void atribuicao(boolean pularPV){
