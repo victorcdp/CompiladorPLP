@@ -1,7 +1,7 @@
 package main;
 
 //OQ FALTA
-// fazer os comandos de for/while realmente repetir as coisas
+// fazer o comando de while realmente repetir as coisas
 //arrays
 
 import java.util.List;
@@ -16,6 +16,10 @@ public class Parser {
     private int bloco = 0;
     public static ListaVar lista = new ListaVar();
     public TokenTypes tipo;
+    private int loopInicio = 0;
+    private boolean isInLoop = false;
+    private double loopIterator = 0;
+    private double loopFinal = 0;
     
 
     Parser(List<Token> tokens) {
@@ -69,6 +73,7 @@ public class Parser {
 
     private void bloco() {
         if (match(TokenTypes.ABRE_CHAVE)) {
+        	loopInicio = tokenIt;
             bloco++;
             nextTk();
             while (match(TokenTypes.INT_ID) || match(TokenTypes.FLOAT_ID) || match(TokenTypes.CHAR_ID)) {
@@ -79,6 +84,15 @@ public class Parser {
             }
             if (!match(TokenTypes.FECHA_CHAVE)) {
                 error("Bloco mal formado");
+            }
+            while(isInLoop) {
+            	loopIterator++;
+            	tokenIt = loopInicio + 1;
+            	look = tokens.get(tokenIt);
+            	if(loopIterator == loopFinal) {
+            		isInLoop = false;
+            	}
+            	comando();
             }
             lista.removerBloco(bloco);
             bloco--;
@@ -440,14 +454,18 @@ public class Parser {
             nextTk();
             if(match(TokenTypes.ABRE_PARENTESES)){
             	nextTk();
+            	Token forInicio = look;
                 atribuicao(false);
-                expr_relacional();
+                loopIterator = lista.find(forInicio.lexema, bloco).valorNumerico;
+                expr_relacional_simples();
                 if(match(TokenTypes.PONTO_VIRGULA)) {
                 	nextTk();
                 	atribuicao(true);
                 	if(match(TokenTypes.FECHA_PARENTESES)) {
                 		nextTk();
+                		isInLoop = true;
                 		bloco();
+                		nextTk();
                 	}
                 	else {
                 		error("For mal formado");
@@ -461,6 +479,20 @@ public class Parser {
                 error("parentese da condição do for não foi aberto");
             }
         }
+    }
+    
+    public void expr_relacional_simples() {
+    	nextTk();
+    	if(match(TokenTypes.MENOR)) {
+    		nextTk();
+    		loopFinal = Double.parseDouble(look.lexema) - 1;
+    		nextTk();
+    	}
+    	else if(match(TokenTypes.MENOR_IGUAL)){
+    		nextTk();
+    		loopFinal = Double.parseDouble(look.lexema);
+    		nextTk();
+    	}
     }
 
     public void expr_relacional() {
