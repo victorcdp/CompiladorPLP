@@ -75,7 +75,7 @@ public class Parser {
             while (match(TokenTypes.INT_ID) || match(TokenTypes.FLOAT_ID) || match(TokenTypes.CHAR_ID)) {
                 decl_var();
             }
-            while (match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.WHILE_ID) || match(TokenTypes.DO_ID) || match(TokenTypes.IF_ID) || match(TokenTypes.FOR_ID) || match(TokenTypes.PRINTF)) {
+            while (match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.WHILE_ID) || match(TokenTypes.DO_ID) || match(TokenTypes.IF_ID) || match(TokenTypes.FOR_ID) || match(TokenTypes.PRINTF) || match(TokenTypes.SCANF)) {
                 comando();
             }
             if (!match(TokenTypes.FECHA_CHAVE)) {
@@ -150,7 +150,9 @@ public class Parser {
         	iteracaoFor();
         } else if(match(TokenTypes.PRINTF)) {
             print();
-        }   
+        } else if(match(TokenTypes.SCANF)) {
+            scan();
+        }
         else if (match(TokenTypes.IF_ID)) {
             nextTk();
             if (match(TokenTypes.ABRE_PARENTESES)) {
@@ -386,4 +388,38 @@ public class Parser {
             error("não abriu parenteses no print");
         }
     }
+
+    public void scan() {
+    	nextTk();
+    	if(match(TokenTypes.ABRE_PARENTESES)) {
+    		nextTk();
+    		if(match(TokenTypes.IDENTIFICADOR)) {
+    			VarNode varFound = lista.find(look.lexema, bloco);
+    			if(varFound == null) {
+    				error("variável do scanf não existe");
+    			}
+    			nextTk();
+    			if(match(TokenTypes.FECHA_PARENTESES)) {
+    				nextTk();
+    				if(match(TokenTypes.PONTO_VIRGULA)) {
+    					nextTk();
+    					return;
+    				}
+    				else {
+    					error("falta de ponto virgula");
+    				}
+    			}
+    			else {
+    				error("não fechou parenteses do scanf");
+    			}
+    		}
+    		else {
+    			error("scanf mal formado");
+    		}
+    	}
+    	else {
+    		error("scanf mal formado");
+    	}
+    }
+    
 }

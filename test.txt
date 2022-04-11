@@ -1,7 +1,7 @@
 int main() {
 	int x, i;
 	x = 0;
-
+	char[] exemplo = "exemplo"; 
 	while (x <= 7) {
 		printf(x);
 		x = x + 1;

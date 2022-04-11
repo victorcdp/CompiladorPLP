@@ -1,6 +1,7 @@
 package main;
 
 import java.util.List;
+import java.util.Scanner;
 
 public class Interpreter {
 
@@ -67,7 +68,7 @@ public class Interpreter {
             while (match(TokenTypes.INT_ID) || match(TokenTypes.FLOAT_ID) || match(TokenTypes.CHAR_ID)) {
                 decl_var();
             }
-            while (match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.WHILE_ID) || match(TokenTypes.DO_ID) || match(TokenTypes.IF_ID) || match(TokenTypes.FOR_ID) || match(TokenTypes.PRINTF)) {
+            while (match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.WHILE_ID) || match(TokenTypes.DO_ID) || match(TokenTypes.IF_ID) || match(TokenTypes.FOR_ID) || match(TokenTypes.PRINTF) || match(TokenTypes.SCANF)) {
                 comando();
             }
             if (!match(TokenTypes.FECHA_CHAVE)) {
@@ -142,7 +143,9 @@ public class Interpreter {
         	iteracaoFor();
         } else if(match(TokenTypes.PRINTF)) {
             print();
-        }   
+        } else if(match(TokenTypes.SCANF)) {
+            scan();
+        }
         else if (match(TokenTypes.IF_ID)) {
             nextTk();
             if (match(TokenTypes.ABRE_PARENTESES)) {
@@ -233,8 +236,7 @@ public class Interpreter {
                         look = tokens.get(tokenIt);
                     }
                 }
-                tokenIt = finalTokenPosition + 1;
-                look = tokens.get(tokenIt);
+                nextTk();
                 skipComando();
                 nextTk();
             }
@@ -457,6 +459,31 @@ public class Interpreter {
         else {
             error("não abriu parenteses no print");
         }
+    }
+
+    public void scan() {
+    	nextTk();
+    	if(match(TokenTypes.ABRE_PARENTESES)) {
+    		nextTk();
+    		if(match(TokenTypes.IDENTIFICADOR)) {
+    			VarNode varFound = lista.find(look.lexema, bloco);
+    			if(varFound == null) {
+    				error("variável do scanf não existe");
+    			}
+    			nextTk();
+    			if(match(TokenTypes.FECHA_PARENTESES)) {
+    				nextTk();
+    				if(match(TokenTypes.PONTO_VIRGULA)) {
+    				    Scanner scanner = new Scanner(System.in);
+    					String input = scanner.nextLine();
+    					varFound.setValor(input);
+    					nextTk();
+    					scanner.close();
+    					return;
+    				}
+    			}
+    		}
+    	}
     }
 
 }

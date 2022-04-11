@@ -41,6 +41,18 @@ public class VarNode {
             return String.valueOf(this.valorNumerico);
         }
     }
+
+    public boolean setValor(String input) {
+    	try{
+    		double dbl = Double.parseDouble(input);
+    		this.valorNumerico = dbl;
+    		return true;
+    	}
+    	catch(NumberFormatException ex){
+    		this.valorString = input;
+    		return true;
+    	}    	
+    }
     
 }
 

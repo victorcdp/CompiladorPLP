@@ -30,6 +30,7 @@ class Scanner {
         PALRESERVADAS.put("float", TokenTypes.FLOAT_ID);
         PALRESERVADAS.put("char", TokenTypes.CHAR_ID);
         PALRESERVADAS.put("printf", TokenTypes.PRINTF);
+        PALRESERVADAS.put("scanf", TokenTypes.SCANF);
 
     }
     
