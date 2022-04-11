@@ -122,7 +122,7 @@ public class Parser {
             if(match(TokenTypes.ABRE_COLCHETE)) {
             	nextTk();
             	
-            	if(match(TokenTypes.INT) || match(TokenTypes.FLOAT) || match(TokenTypes.IDENTIFICADOR)) {
+            	if(match(TokenTypes.INT) || match(TokenTypes.IDENTIFICADOR)) {
             		nextTk();
             		if(match(TokenTypes.FECHA_COLCHETE)) {
             			nextTk();

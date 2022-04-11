@@ -1,6 +1,7 @@
 int main() {
 	int x, i;
 	char c;
+	int a[5];
 	x = 0;
 	c[] = "c string";
 	while (x <= 7) {

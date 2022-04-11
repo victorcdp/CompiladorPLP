@@ -1,5 +1,7 @@
 package main;
 
+import java.util.ArrayList;
+
 public class VarNode {
     public VarNode next;
     final public TokenTypes tipo;
@@ -7,6 +9,8 @@ public class VarNode {
     public int bloco;
     public double valorNumerico = 0;
     public String valorString = "";
+    public int arraySize = 0;
+    public ArrayList arrayList;
     
     public VarNode(){
         tipo = null;
@@ -52,6 +56,10 @@ public class VarNode {
     		this.valorString = input;
     		return true;
     	}    	
+    }
+
+    public void createList(int size){
+        arrayList = new ArrayList<>(size);
     }
     
 }

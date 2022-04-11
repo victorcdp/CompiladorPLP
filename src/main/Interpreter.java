@@ -100,6 +100,7 @@ public class Interpreter {
     }
 
     public void id() {
+        String id = look.lexema;
         if (match(TokenTypes.IDENTIFICADOR)) {
             lista.add(new VarNode(tipo, look.lexema, bloco));
             nextTk();
@@ -115,7 +116,8 @@ public class Interpreter {
             if(match(TokenTypes.ABRE_COLCHETE)) {
             	nextTk();
             	
-            	if(match(TokenTypes.INT) || match(TokenTypes.FLOAT) || match(TokenTypes.IDENTIFICADOR)) {
+            	if(match(TokenTypes.INT) || match(TokenTypes.IDENTIFICADOR)) {
+                    lista.find(id, bloco).arraySize = Integer.parseInt(look.lexema);
             		nextTk();
             		if(match(TokenTypes.FECHA_COLCHETE)) {
             			nextTk();
