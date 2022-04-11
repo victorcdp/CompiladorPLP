@@ -199,7 +199,30 @@ public class Interpreter {
         if(match(TokenTypes.IDENTIFICADOR)){
         	Token var = look;
             double valor;
+            String valorString = "";
             nextTk();
+            if(match(TokenTypes.ABRE_COLCHETE)){
+                nextTk();
+                if(match(TokenTypes.FECHA_COLCHETE)){
+                    nextTk();
+                    if(match(TokenTypes.ATRIBUICAO)){
+                        nextTk();
+                        if(match(TokenTypes.ASPAS)){
+                            nextTk();
+                            while(!match(TokenTypes.ASPAS)){
+                                valorString = valorString + " " + look.lexema;
+                                nextTk();
+                            }
+                            nextTk();
+                            if(match(TokenTypes.PONTO_VIRGULA)){
+                                nextTk();
+                                lista.find(var.lexema, bloco).setValor(valorString);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
             if(match(TokenTypes.ATRIBUICAO)){
                 	valor = op_aritmetica();
                     lista.find(var.lexema, bloco).valorNumerico = valor;

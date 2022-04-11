@@ -186,6 +186,26 @@ public class Parser {
     public void atribuicao(boolean pularPV){
         if(match(TokenTypes.IDENTIFICADOR)){
             nextTk();
+            if(match(TokenTypes.ABRE_COLCHETE)){
+                nextTk();
+                if(match(TokenTypes.FECHA_COLCHETE)){
+                    nextTk();
+                    if(match(TokenTypes.ATRIBUICAO)){
+                        nextTk();
+                        if(match(TokenTypes.ASPAS)){
+                            nextTk();
+                            while(!match(TokenTypes.ASPAS)){
+                                nextTk();
+                            }
+                            nextTk();
+                            if(match(TokenTypes.PONTO_VIRGULA)){
+                                nextTk();
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
             if(match(TokenTypes.ATRIBUICAO)){
                 	op_aritmetica();
                 if(match(TokenTypes.PONTO_VIRGULA)){
