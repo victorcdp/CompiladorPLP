@@ -32,6 +32,15 @@ public class VarNode {
         this.bloco = bloco;
         this.valorString = valorString;
     }
+
+    public String getString() {
+        if (this.valorString != "") {
+            return this.valorString;
+        }
+        else {
+            return String.valueOf(this.valorNumerico);
+        }
+    }
     
 }
 

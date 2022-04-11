@@ -1,0 +1,12 @@
+int main() {
+	int x, i;
+	x = 0;
+
+	while (x <= 7) {
+		printf(x);
+		x = x + 1;
+	}
+
+	
+	printf("xis");
+}
