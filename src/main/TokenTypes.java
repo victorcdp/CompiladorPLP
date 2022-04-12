@@ -36,8 +36,7 @@ public enum TokenTypes {
     ASPAS(32),
     ABRE_COLCHETE(33),
     FECHA_COLCHETE(34),
-    SCANF(35),
-    DOIS_PONTOS(36);
+    SCANF(35);
 
     public final int valor;
 

@@ -1,13 +1,9 @@
 package main;
 
-//OQ FALTA
-//Print
-//1 comando de entrada (?)
-//arrays
-
 import java.util.List;
+import java.util.Scanner;
 
-public class Parser {
+public class Interpreter {
 
     private final List<Token> tokens;
     private Token look = null;
@@ -15,22 +11,19 @@ public class Parser {
     private int bloco = 0;
     public static ListaVar lista = new ListaVar();
     public TokenTypes tipo;
-    
 
-    Parser(List<Token> tokens) {
+    Interpreter(List<Token> tokens) {
         this.tokens = tokens;
     }
 
     public void nextTk() {
         tokenIt += 1;
         look = tokens.get(tokenIt);
-        //System.out.println("novo token: " + look); // só pra teste
     }
-    
+
     public Token lookAhead(int n) {
     	return tokens.get(tokenIt + n);
     }
-    
 
     public boolean match(TokenTypes tipo) {
         return look.tipo == tipo;
@@ -91,7 +84,7 @@ public class Parser {
             error("Bloco mal formado");
         }
     }
-
+    
     public void decl_var() {
         tipo();
         tipo = look.tipo;
@@ -107,6 +100,7 @@ public class Parser {
     }
 
     public void id() {
+        String id = look.lexema;
         if (match(TokenTypes.IDENTIFICADOR)) {
             lista.add(new VarNode(tipo, look.lexema, bloco));
             nextTk();
@@ -123,6 +117,7 @@ public class Parser {
             	nextTk();
             	
             	if(match(TokenTypes.INT) || match(TokenTypes.IDENTIFICADOR)) {
+                    lista.find(id, bloco).arraySize = Integer.parseInt(look.lexema);
             		nextTk();
             		if(match(TokenTypes.FECHA_COLCHETE)) {
             			nextTk();
@@ -156,14 +151,24 @@ public class Parser {
         else if (match(TokenTypes.IF_ID)) {
             nextTk();
             if (match(TokenTypes.ABRE_PARENTESES)) {
-                expr_relacional();
+                boolean ifRun = expr_relacional();
                 if (match(TokenTypes.FECHA_PARENTESES)) {
                     nextTk();
-                    comando();
+                    if (ifRun) {
+                        comando();
+                    }
+                    else {
+                        skipComando();
+                    }
                     nextTk();
                     if(match(TokenTypes.ELSE_ID)){
                         nextTk();
-                        comando();
+                        if (!ifRun) {
+                            comando();
+                        }
+                        else {
+                            skipComando();
+                        }
                     }
                 } else {
                     error("Não fechou parenteses na condição do IF");
@@ -171,6 +176,15 @@ public class Parser {
             } else {
                 error("Não abriu parenteses na condição do IF");
             }
+        }
+    }
+
+    private void skipComando(){
+        int chave = 1;
+        while (chave != 0){
+            nextTk();
+            if (match(TokenTypes.ABRE_CHAVE)){chave++;}
+            if (match(TokenTypes.FECHA_CHAVE)){chave--;}
         }
     }
     
@@ -185,6 +199,9 @@ public class Parser {
     
     public void atribuicao(boolean pularPV){
         if(match(TokenTypes.IDENTIFICADOR)){
+        	Token var = look;
+            double valor;
+            String valorString = "";
             nextTk();
             if(match(TokenTypes.ABRE_COLCHETE)){
                 nextTk();
@@ -195,11 +212,13 @@ public class Parser {
                         if(match(TokenTypes.ASPAS)){
                             nextTk();
                             while(!match(TokenTypes.ASPAS)){
+                                valorString = valorString + " " + look.lexema;
                                 nextTk();
                             }
                             nextTk();
                             if(match(TokenTypes.PONTO_VIRGULA)){
                                 nextTk();
+                                lista.find(var.lexema, bloco).setValor(valorString);
                                 return;
                             }
                         }
@@ -207,7 +226,8 @@ public class Parser {
                 }
             }
             if(match(TokenTypes.ATRIBUICAO)){
-                	op_aritmetica();
+                	valor = op_aritmetica();
+                    lista.find(var.lexema, bloco).valorNumerico = valor;
                 if(match(TokenTypes.PONTO_VIRGULA)){
                     nextTk();
                 }
@@ -224,24 +244,26 @@ public class Parser {
         }
     }
     
-  
-    
     public void iteracao(){
+        int tokenPosition, finalTokenPosition = 0;
         if(match(TokenTypes.WHILE_ID)){
             nextTk();
             if(match(TokenTypes.ABRE_PARENTESES)){
-                expr_relacional();
-                if(match(TokenTypes.FECHA_PARENTESES)){
-                    nextTk();
-                    comando();
-                    nextTk();
+                tokenPosition = tokenIt;
+
+                while(expr_relacional()){
+                    if(match(TokenTypes.FECHA_PARENTESES)){
+                        finalTokenPosition = tokenIt;
+                        nextTk();
+                        comando();
+                        nextTk();
+                        tokenIt = tokenPosition;
+                        look = tokens.get(tokenIt);
+                    }
                 }
-                else{
-                    error("parentese da condição do while não foi fechada");
-                }
-            }
-            else{
-                error("parentese da condição do while não foi aberto");
+                nextTk();
+                skipComando();
+                nextTk();
             }
         }
         else if(match(TokenTypes.DO_ID)){
@@ -279,26 +301,31 @@ public class Parser {
     }
     
     public void iteracaoFor() {
+        int tokenPosition, finalTokenPosition = 0;
+
     	if(match(TokenTypes.FOR_ID)){
             nextTk();
             if(match(TokenTypes.ABRE_PARENTESES)){
             	nextTk();
                 atribuicao(false);
-                expr_relacional();
-                if(match(TokenTypes.PONTO_VIRGULA)) {
-                	nextTk();
-                	atribuicao(true);
-                	if(match(TokenTypes.FECHA_PARENTESES)) {
-                		nextTk();
-                		bloco();
-                	}
-                	else {
-                		error("For mal formado");
-                	}
+                tokenPosition = tokenIt - 1;
+                while(expr_relacional()) {
+                    if(match(TokenTypes.PONTO_VIRGULA)) {
+                        nextTk();
+                        atribuicao(true);
+                        if(match(TokenTypes.FECHA_PARENTESES)) {
+                            finalTokenPosition = tokenIt;
+                            nextTk();
+                            bloco();
+                        }
+                    }
+                    tokenIt = tokenPosition;
+                    look = tokens.get(tokenIt);
                 }
-                else {
-                	error("falta de ponto virgula na condição do for");
-                }
+                tokenIt = finalTokenPosition + 1;
+                look = tokens.get(tokenIt);
+                skipComando();
+                nextTk();
             }
             else{
                 error("parentese da condição do for não foi aberto");
@@ -306,37 +333,69 @@ public class Parser {
         }
     }
 
-    public void expr_relacional() {
-        op_aritmetica();
-        op_relacional();
-        op_aritmetica();
+    public boolean expr_relacional() {
+        double op_ari1 = op_aritmetica();
+        TokenTypes tipo = op_relacional();
+        double op_ari2 = op_aritmetica();
+
+        switch(tipo){
+            case MENOR_IGUAL:
+                return (op_ari1 <= op_ari2);
+            case MENOR:
+                return (op_ari1 < op_ari2);
+            case MAIOR_IGUAL:
+                return (op_ari1 >= op_ari2);
+            case MAIOR:
+                return (op_ari1 > op_ari2);
+            case IGUAL:
+                return (op_ari1 == op_ari2);
+            case DIFERENTE:
+                return (op_ari1 != op_ari2);
+            default:
+                return false;
+        }
+
     }
     
-    public void op_relacional(){
+    public TokenTypes op_relacional(){
         if(!(match(TokenTypes.MENOR_IGUAL) || match(TokenTypes.MENOR) || match(TokenTypes.MAIOR_IGUAL) || match(TokenTypes.MAIOR) || match(TokenTypes.IGUAL) || match(TokenTypes.DIFERENTE))){
             error("operador relacional não existente.");
         }
+        return look.tipo;
     }
     
-    public void op_aritmetica() {
-        termo();
-        somaOuSubtracao();
+    public double op_aritmetica() {
+        double result;
+        double termo_value = termo();
+        result = somaOuSubtracao(termo_value);
+        return result;
     }
 
-    public void termo() {
-        fator();
-        multiplicacaoOuDivisao();
+    public double termo() {
+        double result;
+        double fator_value = fator();
+        result = multiplicacaoOuDivisao(fator_value);
+        return result;
     }
     
-    public void fator(){
+    public double fator(){
+        double valor = 0;
         nextTk();
         if(match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.INT) || match(TokenTypes.FLOAT) || match(TokenTypes.CHAR)){
+            if (match(TokenTypes.IDENTIFICADOR)){
+                valor = lista.find(look.lexema, bloco).valorNumerico;
+            }
+            else {
+                valor = Double.parseDouble(look.lexema);
+            }
             nextTk();
+            return valor;
         }
         else if(match(TokenTypes.ABRE_PARENTESES)){
-            op_aritmetica();
+            valor = op_aritmetica();
             if(match(TokenTypes.FECHA_PARENTESES)){
                 nextTk();
+                return valor;
             }
             else{
                 error("não fechou parenteses na expressão aritmetica");
@@ -345,23 +404,37 @@ public class Parser {
         else if(match(TokenTypes.MULTIPLICACAO) || match(TokenTypes.DIVISAO) || match(TokenTypes.SOMA) || match(TokenTypes.SUBTRACAO) || match(TokenTypes.PONTO_VIRGULA)){
             error("operador inválido na expressão aritmetica");
         }
+        return valor;
     }
 
-    public void multiplicacaoOuDivisao(){
+    public double multiplicacaoOuDivisao(double first){
         if(match(TokenTypes.MULTIPLICACAO) || match(TokenTypes.DIVISAO)){
-            fator();
-            multiplicacaoOuDivisao();
+            TokenTypes tipo = look.tipo;
+            double second = fator();
+            double result = 0;
+            if (tipo == TokenTypes.MULTIPLICACAO) {
+                result = first * second;
+            } else {
+                result = first / second;
+            }
+            return multiplicacaoOuDivisao(result);            
         }
-        else if(match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.INT) || match(TokenTypes.FLOAT) || match(TokenTypes.CHAR)){
-            error("objeto inesperado na expressão aritmetica");
-        }
+        return first;
     }
 
-    public void somaOuSubtracao(){
+    public double somaOuSubtracao(double first){
         if(match(TokenTypes.SOMA) || match(TokenTypes.SUBTRACAO)){
-            termo();
-            somaOuSubtracao();
+            TokenTypes tipo = look.tipo;
+            double second = fator();
+            double result = 0;
+            if (tipo == TokenTypes.SOMA) {
+                result = first + second;
+            } else {
+                result = first - second;
+            }
+            return somaOuSubtracao(result);     
         }
+        return first;
     }
     
     public static void printLista(){
@@ -369,12 +442,14 @@ public class Parser {
     }
 
     public void print() {
+        String var = "";
         nextTk();
         if(match(TokenTypes.ABRE_PARENTESES)) {
             nextTk();
             if(match(TokenTypes.ASPAS)) {
                 nextTk();
                 while(!match(TokenTypes.ASPAS)) {
+                    var = var + " " + look.lexema;
                     nextTk();
                 }
                 if(match(TokenTypes.ASPAS)) {
@@ -388,9 +463,11 @@ public class Parser {
                 if(lookAhead(1).tipo == TokenTypes.ASPAS) {
                     error("print mal formado");
                 }
+                var = lista.find(look.lexema, bloco).getString();
                 nextTk();
             }
             if(match(TokenTypes.FECHA_PARENTESES)) {
+                System.out.println(var);
                 nextTk();
                 if(match(TokenTypes.PONTO_VIRGULA)) {
                     nextTk();
@@ -422,24 +499,16 @@ public class Parser {
     			if(match(TokenTypes.FECHA_PARENTESES)) {
     				nextTk();
     				if(match(TokenTypes.PONTO_VIRGULA)) {
+    				    Scanner scanner = new Scanner(System.in);
+    					String input = scanner.nextLine();
+    					varFound.setValor(input);
     					nextTk();
+    					scanner.close();
     					return;
     				}
-    				else {
-    					error("falta de ponto virgula");
-    				}
-    			}
-    			else {
-    				error("não fechou parenteses do scanf");
     			}
     		}
-    		else {
-    			error("scanf mal formado");
-    		}
-    	}
-    	else {
-    		error("scanf mal formado");
     	}
     }
-    
+
 }

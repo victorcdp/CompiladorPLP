@@ -32,7 +32,6 @@ class Scanner {
         PALRESERVADAS.put("printf", TokenTypes.PRINTF);
         PALRESERVADAS.put("scanf", TokenTypes.SCANF);
 
-
     }
     
     
@@ -136,9 +135,6 @@ class Scanner {
     private void scanToken() {
         char c = advance();
         switch (c) {
-	        case ':':
-	        	addToken(TokenTypes.DOIS_PONTOS);
-	        	break;
         	case '"':
         		addToken(TokenTypes.ASPAS);
         		break;

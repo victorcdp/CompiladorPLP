@@ -1,5 +1,7 @@
 package main;
 
+import java.util.ArrayList;
+
 public class VarNode {
     public VarNode next;
     final public TokenTypes tipo;
@@ -7,6 +9,8 @@ public class VarNode {
     public int bloco;
     public double valorNumerico = 0;
     public String valorString = "";
+    public int arraySize = 0;
+    public ArrayList arrayList;
     
     public VarNode(){
         tipo = null;
@@ -32,16 +36,16 @@ public class VarNode {
         this.bloco = bloco;
         this.valorString = valorString;
     }
-    
+
     public String getString() {
-    	if (this.valorString != "") {
-    		return this.valorString;
-    	}
-    	else {
-    		return String.valueOf(this.valorNumerico);
-    	}
+        if (this.valorString != "") {
+            return this.valorString;
+        }
+        else {
+            return String.valueOf(this.valorNumerico);
+        }
     }
-    
+
     public boolean setValor(String input) {
     	try{
     		double dbl = Double.parseDouble(input);
@@ -53,6 +57,10 @@ public class VarNode {
     		return true;
     	}    	
     }
-    
+
+    public void createList(int size){
+        arrayList = new ArrayList<>(size);
+    }
+   
 }
 

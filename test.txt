@@ -1,9 +1,15 @@
 int main() {
-	int x;
+	int x, i;
+	char c;
+	int a[5];
 	x = 0;
-	for(x = 0; x < 5; x = x + 1){
-		printf("teste");
+	c[] = "c string";
+	while (x <= 7) {
+		printf(x);
+		x = x + 1;
 	}
 
-	printf("fim do for");
+	
+	printf("xis");
+	printf(c);
 }
