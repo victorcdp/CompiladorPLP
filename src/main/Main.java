@@ -12,7 +12,7 @@ public class Main {
     
     
     public static void main(String[] args) throws IOException {
-        //runFile("test.txt");
+        runFile("test.txt");
         if(args.length > 0){
             runFile(args[0]);
             System.out.println("Compilou com sucesso.");
@@ -38,6 +38,7 @@ public class Main {
         
         Parser ps = new Parser(tokens);
         ps.programa();
+        System.out.println("<-------------- passou do parser -------------->");
         Interpreter itp = new Interpreter(tokens);
         itp.programa();
     }
