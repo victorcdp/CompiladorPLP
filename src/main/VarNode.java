@@ -61,10 +61,6 @@ public class VarNode {
     public void createList(int size){
         arrayList = new ArrayList<>(size);
     }
-
-    public int getArraySize() {
-        return arraySize;
-    }
-    
+   
 }
 
