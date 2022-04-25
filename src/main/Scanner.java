@@ -189,6 +189,7 @@ class Scanner {
                     System.out.println("ERRO: (‘&’) não seguida de ‘&’ na linha: " + linha + " e coluna: " + coluna);
                     System.exit(0);
                 }
+                break;
             case '|':
                 if (match('|')) {
                     addToken(TokenTypes.OR);
@@ -196,6 +197,7 @@ class Scanner {
                     System.out.println("ERRO: (‘|’) não seguida de ‘|’ na linha: " + linha + " e coluna: " + coluna);
                     System.exit(0);
                 }
+                break;
             case '!':
                 if (match('=')) {
                     addToken(TokenTypes.DIFERENTE);

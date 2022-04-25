@@ -160,7 +160,8 @@ public class Parser {
         else if (match(TokenTypes.IF_ID)) {
             nextTk();
             if (match(TokenTypes.ABRE_PARENTESES)) {
-                expr_relacional();
+                //expr_relacional();
+                opr_logica();
                 if (match(TokenTypes.FECHA_PARENTESES)) {
                     nextTk();
                     comando();
@@ -234,7 +235,8 @@ public class Parser {
         if(match(TokenTypes.WHILE_ID)){
             nextTk();
             if(match(TokenTypes.ABRE_PARENTESES)){
-                expr_relacional();
+                opr_logica();
+                //expr_relacional();
                 if(match(TokenTypes.FECHA_PARENTESES)){
                     nextTk();
                     comando();
@@ -308,6 +310,17 @@ public class Parser {
                 error("parentese da condição do for não foi aberto");
             }
         }
+    }
+
+    public void opr_logica(){
+        if(!match(TokenTypes.FECHA_PARENTESES)){
+            expr_relacional();
+        }
+        if(match(TokenTypes.AND) || match(TokenTypes.OR)) {
+            nextTk();
+            expr_relacional();
+            opr_logica();
+        }  
     }
 
     public void expr_relacional() {

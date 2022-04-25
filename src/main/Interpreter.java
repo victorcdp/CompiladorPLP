@@ -155,7 +155,8 @@ public class Interpreter {
         else if (match(TokenTypes.IF_ID)) {
             nextTk();
             if (match(TokenTypes.ABRE_PARENTESES)) {
-                boolean ifRun = expr_relacional();
+                //boolean ifRun = expr_relacional();
+                boolean ifRun = opr_logica();
                 if (match(TokenTypes.FECHA_PARENTESES)) {
                     nextTk();
                     if (ifRun) {
@@ -255,7 +256,7 @@ public class Interpreter {
             if(match(TokenTypes.ABRE_PARENTESES)){
                 tokenPosition = tokenIt;
 
-                while(expr_relacional()){
+                while(opr_logica()){
                     if(match(TokenTypes.FECHA_PARENTESES)){
                         finalTokenPosition = tokenIt;
                         nextTk();
@@ -335,6 +336,33 @@ public class Interpreter {
                 error("parentese da condição do for não foi aberto");
             }
         }
+    }
+
+    public boolean opr_logica(){
+        
+        boolean actual = expr_relacional(); 
+        if(match(TokenTypes.AND)) {                
+            boolean recursive = opr_logica(); 
+            if (actual && recursive) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        } 
+        if(match(TokenTypes.OR)) {
+            boolean recursive = opr_logica();
+            if(!match(TokenTypes.FECHA_PARENTESES)){
+                return actual;
+            }
+            if (actual || recursive) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        } 
+        return actual;                   
     }
 
     public boolean expr_relacional() {
