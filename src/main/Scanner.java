@@ -31,6 +31,8 @@ class Scanner {
         PALRESERVADAS.put("char", TokenTypes.CHAR_ID);
         PALRESERVADAS.put("printf", TokenTypes.PRINTF);
         PALRESERVADAS.put("scanf", TokenTypes.SCANF);
+        PALRESERVADAS.put("strlen", TokenTypes.STRLEN);
+        PALRESERVADAS.put("strcat", TokenTypes.STRCAT);
 
     }
     
@@ -179,6 +181,22 @@ class Scanner {
                 break;
             case '>':
                 addToken(match('=') ? TokenTypes.MAIOR_IGUAL : TokenTypes.MAIOR);
+                break;
+            case '&':
+                if (match('&')) {
+                    addToken(TokenTypes.AND);
+                } else {
+                    System.out.println("ERRO: (‘&’) não seguida de ‘&’ na linha: " + linha + " e coluna: " + coluna);
+                    System.exit(0);
+                }
+                break;
+            case '|':
+                if (match('|')) {
+                    addToken(TokenTypes.OR);
+                } else {
+                    System.out.println("ERRO: (‘|’) não seguida de ‘|’ na linha: " + linha + " e coluna: " + coluna);
+                    System.exit(0);
+                }
                 break;
             case '!':
                 if (match('=')) {

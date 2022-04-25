@@ -68,7 +68,7 @@ public class Interpreter {
             while (match(TokenTypes.INT_ID) || match(TokenTypes.FLOAT_ID) || match(TokenTypes.CHAR_ID)) {
                 decl_var();
             }
-            while (match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.WHILE_ID) || match(TokenTypes.DO_ID) || match(TokenTypes.IF_ID) || match(TokenTypes.FOR_ID) || match(TokenTypes.PRINTF) || match(TokenTypes.SCANF)) {
+            while (match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.WHILE_ID) || match(TokenTypes.DO_ID) || match(TokenTypes.IF_ID) || match(TokenTypes.FOR_ID) || match(TokenTypes.PRINTF) || match(TokenTypes.SCANF) || match(TokenTypes.STRLEN) || match(TokenTypes.STRCAT)) {
                 comando();
             }
             if (!match(TokenTypes.FECHA_CHAVE)) {
@@ -147,11 +147,16 @@ public class Interpreter {
             print();
         } else if(match(TokenTypes.SCANF)) {
             scan();
+        } else if(match(TokenTypes.STRLEN)) {
+            strlen(true);
+        } else if(match(TokenTypes.STRCAT)) {
+            strcat(true);
         }
         else if (match(TokenTypes.IF_ID)) {
             nextTk();
             if (match(TokenTypes.ABRE_PARENTESES)) {
-                boolean ifRun = expr_relacional();
+                //boolean ifRun = expr_relacional();
+                boolean ifRun = opr_logica();
                 if (match(TokenTypes.FECHA_PARENTESES)) {
                     nextTk();
                     if (ifRun) {
@@ -251,7 +256,7 @@ public class Interpreter {
             if(match(TokenTypes.ABRE_PARENTESES)){
                 tokenPosition = tokenIt;
 
-                while(expr_relacional()){
+                while(opr_logica()){
                     if(match(TokenTypes.FECHA_PARENTESES)){
                         finalTokenPosition = tokenIt;
                         nextTk();
@@ -333,6 +338,33 @@ public class Interpreter {
         }
     }
 
+    public boolean opr_logica(){
+        
+        boolean actual = expr_relacional(); 
+        if(match(TokenTypes.AND)) {                
+            boolean recursive = opr_logica(); 
+            if (actual && recursive) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        } 
+        if(match(TokenTypes.OR)) {
+            boolean recursive = opr_logica();
+            if(!match(TokenTypes.FECHA_PARENTESES)){
+                return actual;
+            }
+            if (actual || recursive) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        } 
+        return actual;                   
+    }
+
     public boolean expr_relacional() {
         double op_ari1 = op_aritmetica();
         TokenTypes tipo = op_relacional();
@@ -381,7 +413,10 @@ public class Interpreter {
     public double fator(){
         double valor = 0;
         nextTk();
-        if(match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.INT) || match(TokenTypes.FLOAT) || match(TokenTypes.CHAR)){
+        if(match(TokenTypes.STRLEN)) {
+            valor = strlen(false);
+        }
+        else if(match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.INT) || match(TokenTypes.FLOAT) || match(TokenTypes.CHAR)){
             if (match(TokenTypes.IDENTIFICADOR)){
                 valor = lista.find(look.lexema, bloco).valorNumerico;
             }
@@ -465,6 +500,10 @@ public class Interpreter {
                 }
                 var = lista.find(look.lexema, bloco).getString();
                 nextTk();
+            } else if(match(TokenTypes.STRLEN)) {
+                var = var + strlen(false);
+                //nextTk();
+
             }
             if(match(TokenTypes.FECHA_PARENTESES)) {
                 System.out.println(var);
@@ -509,6 +548,83 @@ public class Interpreter {
     			}
     		}
     	}
+    }
+
+    public double strlen(boolean pv) {
+        double sizeValue = 0;
+        nextTk();
+        if(match(TokenTypes.ABRE_PARENTESES)) {
+            nextTk();
+            if(match(TokenTypes.IDENTIFICADOR)) {
+                sizeValue = lista.find(look.lexema, bloco).getArraySize();
+                nextTk();
+                if (match(TokenTypes.FECHA_PARENTESES)){
+                    nextTk();
+                    if (pv) {
+                        if (match(TokenTypes.PONTO_VIRGULA)){
+                            nextTk();
+                            return sizeValue;
+                        } else {
+                            error("falta de ponto virgula");
+                        }
+                    } else {
+                        //nextTk();
+                        return sizeValue;
+                    }
+                }
+                else {
+                    error("não fechou parenteses do printf");
+                }
+            }
+        }
+        else {
+            error("não abriu parenteses no print");
+        }
+        return sizeValue;
+    }
+
+    public String strcat(boolean pv) {
+        String str1 = "", str2 = "", target = "";
+        nextTk();
+        if(match(TokenTypes.ABRE_PARENTESES)){
+            nextTk();
+            if(match(TokenTypes.IDENTIFICADOR)){
+                str1 = lista.find(look.lexema, bloco).getString();
+                target = look.lexema;
+                nextTk();
+                if(match(TokenTypes.VIRGULA)){
+                    nextTk();
+                    if(match(TokenTypes.IDENTIFICADOR)){
+                        str2 = lista.find(look.lexema, bloco).getString();
+                        nextTk();
+                        if(match(TokenTypes.FECHA_PARENTESES)){
+                            nextTk();
+                            if(pv){
+                                if(match(TokenTypes.PONTO_VIRGULA)){
+                                    nextTk();
+                                    lista.find(target, bloco).setValor(str1 + str2);
+                                    return str1 + str2;
+                                }
+                                else {
+                                    error("falta de ponto virgula");
+                                }
+                            }
+                            else {
+                                lista.find(target, bloco).setValor(str1 + str2);
+                                return str1 + str2;
+                            }
+                        }
+                        else {
+                            error("não fechou parenteses do printf");
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            error("não abriu parenteses no print");
+        }
+        return str1 + str2;
     }
 
 }

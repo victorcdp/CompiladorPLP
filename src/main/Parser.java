@@ -75,7 +75,7 @@ public class Parser {
             while (match(TokenTypes.INT_ID) || match(TokenTypes.FLOAT_ID) || match(TokenTypes.CHAR_ID)) {
                 decl_var();
             }
-            while (match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.WHILE_ID) || match(TokenTypes.DO_ID) || match(TokenTypes.IF_ID) || match(TokenTypes.FOR_ID) || match(TokenTypes.PRINTF) || match(TokenTypes.SCANF)) {
+            while (match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.WHILE_ID) || match(TokenTypes.DO_ID) || match(TokenTypes.IF_ID) || match(TokenTypes.FOR_ID) || match(TokenTypes.PRINTF) || match(TokenTypes.SCANF) || match(TokenTypes.STRLEN) || match(TokenTypes.STRCAT)) {
                 comando();
             }
             if (!match(TokenTypes.FECHA_CHAVE)) {
@@ -152,11 +152,16 @@ public class Parser {
             print();
         } else if(match(TokenTypes.SCANF)) {
             scan();
+        } else if(match(TokenTypes.STRLEN)) {
+            strlen(true);
+        } else if(match(TokenTypes.STRCAT)) {
+            strcat(true);
         }
         else if (match(TokenTypes.IF_ID)) {
             nextTk();
             if (match(TokenTypes.ABRE_PARENTESES)) {
-                expr_relacional();
+                //expr_relacional();
+                opr_logica();
                 if (match(TokenTypes.FECHA_PARENTESES)) {
                     nextTk();
                     comando();
@@ -230,7 +235,8 @@ public class Parser {
         if(match(TokenTypes.WHILE_ID)){
             nextTk();
             if(match(TokenTypes.ABRE_PARENTESES)){
-                expr_relacional();
+                opr_logica();
+                //expr_relacional();
                 if(match(TokenTypes.FECHA_PARENTESES)){
                     nextTk();
                     comando();
@@ -306,6 +312,17 @@ public class Parser {
         }
     }
 
+    public void opr_logica(){
+        if(!match(TokenTypes.FECHA_PARENTESES)){
+            expr_relacional();
+        }
+        if(match(TokenTypes.AND) || match(TokenTypes.OR)) {
+            nextTk();
+            expr_relacional();
+            opr_logica();
+        }  
+    }
+
     public void expr_relacional() {
         op_aritmetica();
         op_relacional();
@@ -330,7 +347,10 @@ public class Parser {
     
     public void fator(){
         nextTk();
-        if(match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.INT) || match(TokenTypes.FLOAT) || match(TokenTypes.CHAR)){
+        if(match(TokenTypes.STRLEN)) {
+            strlen(false);
+        }
+        else if(match(TokenTypes.IDENTIFICADOR) || match(TokenTypes.INT) || match(TokenTypes.FLOAT) || match(TokenTypes.CHAR)){
             nextTk();
         }
         else if(match(TokenTypes.ABRE_PARENTESES)){
@@ -389,6 +409,9 @@ public class Parser {
                     error("print mal formado");
                 }
                 nextTk();
+            } else if(match(TokenTypes.STRLEN)) {
+                strlen(false);
+                //nextTk();
             }
             if(match(TokenTypes.FECHA_PARENTESES)) {
                 nextTk();
@@ -441,5 +464,73 @@ public class Parser {
     		error("scanf mal formado");
     	}
     }
+
+    public void strlen(boolean pv) {
+        nextTk();
+        if(match(TokenTypes.ABRE_PARENTESES)) {
+            nextTk();
+            if(match(TokenTypes.IDENTIFICADOR)) {
+                nextTk();
+                if (match(TokenTypes.FECHA_PARENTESES)){
+                    nextTk();
+                    if (pv) {
+                        if (match(TokenTypes.PONTO_VIRGULA)){
+                            nextTk();
+                            return;
+                        } else {
+                            error("falta de ponto virgula");
+                        }
+                    } else {
+                        //nextTk();
+                        return;
+                    }
+                }
+                else {
+                    error("não fechou parenteses do printf");
+                }
+            }
+        }
+        else {
+            error("não abriu parenteses no print");
+        }
+    }
+
+    public void strcat(boolean pv) {
+        nextTk();
+        if(match(TokenTypes.ABRE_PARENTESES)){
+            nextTk();
+            if(match(TokenTypes.IDENTIFICADOR)){
+                nextTk();
+                if(match(TokenTypes.VIRGULA)){
+                    nextTk();
+                    if(match(TokenTypes.IDENTIFICADOR)){
+                        nextTk();
+                        if(match(TokenTypes.FECHA_PARENTESES)){
+                            nextTk();
+                            if(pv){
+                                if(match(TokenTypes.PONTO_VIRGULA)){
+                                    nextTk();
+                                    return;
+                                }
+                                else {
+                                    error("falta de ponto virgula");
+                                }
+                            }
+                            else {
+                                return;
+                            }
+                        }
+                        else {
+                            error("não fechou parenteses do printf");
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            error("não abriu parenteses no print");
+        }
+    }
+
     
 }
